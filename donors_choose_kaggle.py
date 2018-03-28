@@ -7,7 +7,6 @@ https://www.kaggle.com/c/donorschoose-application-screening
 ######################################################################################
 import numpy as np, pandas as pd, xgboost as xgb
 from xgboost.sklearn import XGBClassifier
-import scipy
 from scipy import sparse
 from scipy.sparse import vstack
 import sklearn
@@ -20,14 +19,13 @@ from sklearn.metrics import confusion_matrix, auc, roc_curve
 from sklearn.cross_validation import *
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import re, string
-import datetime
 from datetime import timedelta
 
 # Import & Format Data
 ######################################################################################
-trn_dir = "C:/Users/user/Desktop/kaggle_data/donors/train.csv"
-tst_dir = "C:/Users/user/Desktop/kaggle_data/donors/test.csv"
-rsc_dir = "C:/Users/user/Desktop/kaggle_data/donors/resources.csv"
+trn_dir = ".../train.csv"
+tst_dir = ".../test.csv"
+rsc_dir = ".../resources.csv"
 my_stop_words = text.ENGLISH_STOP_WORDS
 
 # Import Data & Separate Columns by Type
@@ -52,12 +50,9 @@ def trn_tst_rsc_agg(train_dir, test_dir, join_dir):
     agg_ii = agg.join(rsc_quant.set_index('id'), on = 'id', how = 'left')
     #agg_iii = agg.join(rsc_txt.set_index('id'), on = 'id', how = 'left')
     return agg_ii
-    
-    
+
 dat = trn_tst_rsc_agg(trn_dir, tst_dir, rsc_dir)
 dat = dat.fillna('thisismyNAfiller')
-
-
 
 # Create Variable for Days Since Previous Submission  
 ######################################################################################
@@ -89,7 +84,6 @@ dat['days_since_last_sub'] = dat_tm_days.values
 dat_labels = dat[['id','teacher_id']]
 dat_subsets = pd.DataFrame({'cv_subset': dat['cv_subset']})
 dat_y = pd.DataFrame({'project_is_approved' : dat['project_is_approved']})
-
 dat_text = pd.DataFrame({'title': dat['project_title'],
                          'essays': dat['project_essay_1'].map(str) + dat['project_essay_2'].map(str) + dat['project_essay_3'].map(str) + dat['project_essay_4'].map(str),
                          'resource_summary': dat['project_resource_summary']})
@@ -99,16 +93,14 @@ dat_contin = pd.DataFrame({'teacher_number_of_previously_posted_projects' : dat[
                            'resource_quantity': dat['quantity'],
                            'resource_price': dat['pq_sum'],
                            'days_since_last_sub': dat['days_since_last_sub']})
-    
+
 # Define Data Processing Functions
 ######################################################################################
-
 # Text Fields
 re_tok = re.compile(f'([{string.punctuation}“”¨«»®´·º½¾¿¡§£₤‘’])')
 def tokenize(s): return re_tok.sub(r' \1 ', s).split()
 
 def text_proc(dat, StopWords, max_freq_perc = 0.7, min_freq_perc = 0.01, max_vars = 5000, max_ngram = 1):
-    
     vectoriser = TfidfVectorizer(ngram_range=(1, max_ngram),
                                  tokenizer=tokenize,
                                  min_df = min_freq_perc,
@@ -125,7 +117,6 @@ def text_proc(dat, StopWords, max_freq_perc = 0.7, min_freq_perc = 0.01, max_var
         dat_transf = vectoriser.fit_transform(dat[col].values.astype('U'))
         dat_sparse = sparse.coo_matrix(dat_transf)
         tmp_list.append(dat_sparse)
-    
     return scipy.sparse.hstack(tmp_list)
 
 # Categorical Fields
@@ -165,13 +156,10 @@ def date_proc(dat, binary_event_dt, dt_format):
         else:
             x = 0
         event_list.append(x)
-    
     mth_list = []
     for d in dat:
         mth_list.append(datetime.datetime.strptime(d, dt_format).month)
-        
-    sparse_output = pd.DataFrame({'event': event_list,
-                                  'mth': mth_list})
+    sparse_output = pd.DataFrame({'event': event_list, 'mth': mth_list})
     return sparse.coo_matrix(sparse_output)
     
 # Apply Data Proc. Functions & Combine Features
@@ -290,9 +278,3 @@ pred_df = pd.DataFrame({'id': test_labels, 'project_is_approved': pred})
 # Write Submission File
 ######################################################################################
 pred_df.to_csv('C:/Users/user/Desktop/kaggle_data/donors/submission4.csv', index = False)
-
-
-
-
-
-
