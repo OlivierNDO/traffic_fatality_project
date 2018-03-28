@@ -1,1 +1,1 @@
-# kaggle_classif_scripts
+Kaggle competition scripts
