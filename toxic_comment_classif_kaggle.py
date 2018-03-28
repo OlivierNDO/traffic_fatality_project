@@ -14,8 +14,8 @@ import xgboost as xgb
 # Import & Format Data
 ######################################################################################
 # Import Data
-train =  pd.read_csv("C:/Users/user/Desktop/r_scripts/kaggle/profanity/train.csv")
-test =  pd.read_csv("C:/Users/user/Desktop/r_scripts/kaggle/profanity/test.csv")
+train =  pd.read_csv(".../train.csv")
+test =  pd.read_csv(".../test.csv")
 imported_stopwords = set(stopwords.words('english'))
 
 # Deal With Null Values
