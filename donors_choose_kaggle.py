@@ -44,11 +44,8 @@ def trn_tst_rsc_agg(train_dir, test_dir, join_dir):
     rsc_pq.rename(columns = {'sum':'pq_sum'}, inplace = True)
     rsc_quant = pd.DataFrame(rsc[['id', 'quantity']].groupby('id').quantity.agg(['sum'])).reset_index()
     rsc_quant.rename(columns = {'sum':'quantity'}, inplace = True)
-    #rsc_quant = pd.DataFrame(rsc.groupby('id'),as_index=False).agg(lambda x : x.sum() if x.dtype=='float64' else ' '.join(x))
-    #rsc_txt = pd.DataFrame(rsc[['id', 'description']].groupby('id')['description'].apply(lambda x: "{%s}" % ', '.join(x)))
     agg = trntst.join(rsc_pq.set_index('id'), on = 'id', how = 'left')
     agg_ii = agg.join(rsc_quant.set_index('id'), on = 'id', how = 'left')
-    #agg_iii = agg.join(rsc_txt.set_index('id'), on = 'id', how = 'left')
     return agg_ii
 
 dat = trn_tst_rsc_agg(trn_dir, tst_dir, rsc_dir)
@@ -111,7 +108,6 @@ def text_proc(dat, StopWords, max_freq_perc = 0.7, min_freq_perc = 0.01, max_var
                                  smooth_idf=1,
                                  sublinear_tf=1,
                                  stop_words=set(StopWords))
-    
     tmp_list = []
     for col in dat:
         dat_transf = vectoriser.fit_transform(dat[col].values.astype('U'))
@@ -216,7 +212,6 @@ gsrch.best_params_
     
 # Notes on Grid Search Results
 """
-
 Grid Search 1:
 
 params = {
@@ -277,4 +272,4 @@ pred_df = pd.DataFrame({'id': test_labels, 'project_is_approved': pred})
 
 # Write Submission File
 ######################################################################################
-pred_df.to_csv('C:/Users/user/Desktop/kaggle_data/donors/submission4.csv', index = False)
+pred_df.to_csv('.../submission_n.csv', index = False)
