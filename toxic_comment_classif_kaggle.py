@@ -129,7 +129,7 @@ submission = pd.DataFrame({'id': test['id'],
 
 col_order = ['id', 'toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
 submission = submission[col_order]
-submission.to_csv("C:/Users/user/Desktop/py_scripts/kaggle/profanity/pysubmission3.csv", index = False)
+submission.to_csv(".../pysubmission3.csv", index = False)
 
 
 
