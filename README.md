@@ -1,1 +1,1 @@
-Kaggle competition scripts
+Database connection scripts and functions
