@@ -1,1 +1,2 @@
-Database connection scripts and functions
+- classication algorithm estimating probability of fatality in Texas car crashes
+- data source: Texas Department of Transportation
