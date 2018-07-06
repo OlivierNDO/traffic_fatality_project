@@ -288,8 +288,40 @@ crash_df_vi = pd.merge(nonperson_df, person_df, on = 'Crash_ID')
 # Model Fitting
 #########################################################################################################################
 crash_df_vi = shuffle(crash_df_vi)
-y = crash_df_vi.iloc[:,1]
-x = crash_df_vi.iloc[:,2:319]
+y = crash_df_vi.iloc[:,0]
+x = crash_df_vi.iloc[:,1:319]
+
+# Parameter Tuning
+######################################################################################
+# Parameters Attempted in Grid Search Cross Validation
+
+tune_start = time.time()
+yvar_imbalance = y.count() / y.sum()
+
+params = {
+ 'max_depth': [4,6,8,10,12],
+ #'min_child_weight': [6,8,10,12,14],
+ #'colsample_bytree': [0.1,0.2,0.3],
+ #'colsample_bylevel': [0.3,0.4,0.5],
+ #'reg_lambda': [0, .025, .05, .075, .1],
+ #'learning_rate': [.01, .025, .05],
+ 'scale_pos_weight': [yvar_imbalance],
+ 'n_estimators': [200]
+}
+
+gsrch = GridSearchCV(estimator = XGBClassifier( 
+        objective= 'binary:logistic', 
+        seed = 3082018), 
+    param_grid = params, 
+    scoring = 'neg_log_loss',
+    cv = 3,
+    verbose = 1)
+
+gsrch.fit(x, y)
+gsrch.best_score_
+gsrch.best_params_
+tune_end = time.time()
+print('Tuning Execution Time (minutes): ' + str(np.round((tune_end - tune_start)/60,1)))
 
 # Validation Split
 ######################################################################################
@@ -304,17 +336,17 @@ params = {}
 params['objective'] = 'binary:logistic'
 params['booster'] = 'gbtree'
 params['eval_metric'] = 'logloss'
-params['eta'] = 0.025
-params['max_depth'] = 6
-params['min_child_weight'] = 12
+params['eta'] = 0.0175
+params['max_depth'] = 7
+params['min_child_weight'] = 13
 params['colsample_bytree'] = 0.65
 params['colsample_bylevel'] = 0.25
-params['subsample'] = 0.8
+params['subsample'] = .8
 params['reg_lambda'] = .05
 params['reg_alpha'] = 0
 params['min_split_loss'] = 2
 params['scale_pos_weight'] = yvar_imbalance
-nrnd = 1000 # n_estimators
+nrnd = 20000 # n_estimators
 
 dat_train = xgb.DMatrix(trn_x, label=trn_y)
 dat_valid = xgb.DMatrix(val_x, label=val_y)
@@ -345,4 +377,56 @@ print('\n\n        Out of Sample Performance: \n \n AUC: ' \
  AUC: 0.8852
  sensitivity (true positive): 0.7171
  specificity (true negative): 0.8693
+ 
+ params = {}
+params['objective'] = 'binary:logistic'
+params['booster'] = 'gbtree'
+params['eval_metric'] = 'logloss'
+params['eta'] = 0.025
+params['max_depth'] = 6
+params['min_child_weight'] = 12
+params['colsample_bytree'] = 0.65
+params['colsample_bylevel'] = 0.25
+params['subsample'] = 0.8
+params['reg_lambda'] = .05
+params['reg_alpha'] = 0
+params['min_split_loss'] = 2
+params['scale_pos_weight'] = yvar_imbalance
+nrnd = 1000 # n_estimators
+"""
+
+"""
+        Out of Sample Performance: 
+ 
+ AUC: 0.8406
+ sensitivity (true positive): 0.1321
+ specificity (true negative): 0.9944
+
+# Parameters
+params = {}
+params['objective'] = 'binary:logistic'
+params['booster'] = 'gbtree'
+params['eval_metric'] = 'logloss'
+params['eta'] = 0.0175
+params['max_depth'] = 7
+params['min_child_weight'] = 13
+params['colsample_bytree'] = 0.65
+params['colsample_bylevel'] = 0.25
+params['subsample'] = .8
+params['reg_lambda'] = .05
+params['reg_alpha'] = 0
+params['min_split_loss'] = 2
+params['scale_pos_weight'] = yvar_imbalance
+nrnd = 20000 # n_estimators
+
+"""
+
+"""
+Notes:
+
+- Add feature for 1+ person not in vehicle [0,1]
+- Larger dataset? Can we pull more?
+- Do more exploring to come up with ideas for new features
+- Find external features based on location variables, e.g. lat, long & descr. features of highways, etc.
+
 """
