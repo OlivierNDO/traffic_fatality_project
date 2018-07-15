@@ -25,7 +25,7 @@ from random import choices
 
 # Data Import
 #########################################################################################################################
-agg_scaled_data = pd.read_csv('C:/Users/user/Desktop/school/dddm/trf_fatality_scaled_07142018.csv')
+agg_scaled_data = pd.read_csv('.../trf_fatality_scaled_07142018.csv')
 
 # Train, Test, Validation Split
 ######################################################################################
