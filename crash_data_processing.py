@@ -29,7 +29,7 @@ from nltk.stem import *
 #########################################################################################################################
 save_path = '<save_path>'
 import_path = '<import_path>'
-dirs = ['extract_20141107-20141231Texas',
+dirs = [import_path + 'extract_20141107-20141231Texas',
         'extract_20140908-20141106Texas',
         'extract_20140701-20140907Texas',
         'extract_20140515-20140630Texas',
@@ -130,7 +130,8 @@ def read_crash_csvs(dir_list, folder_path):
     restrictions_df,\
     unit_df
     
-charges_df, crash_df, damages_df, endorsements_df, lookup_df, person_df, primaryperson_df, restrictions_df, unit_df = read_crash_csvs(dirs, import_path)
+charges_df, crash_df, damages_df, endorsements_df, lookup_df,
+person_df, primaryperson_df, restrictions_df, unit_df = read_crash_csvs(dirs)
 
 # Define Data Manipulation & Exploration Functions
 #########################################################################################################################    
@@ -868,14 +869,17 @@ crash_col_summ_ii = pandas_col_summary(crash_df_ii)
 hit_dummies = damage_features(dmg_df = damages_df, str_col = 'Damaged_Property', id_col = 'Crash_ID')
 endo_dummies = endorse_dummies(endorsements_df)
 crash_df_ii = pd.merge(crash_df_ii, hit_dummies, on = 'Crash_ID', how = 'left')
-crash_df_ii[['HIT_FENCE', 'HIT_POLE', 'HIT_RAIL', 'HIT_SIGN', 'HIT_LIGHT', 'HIT_CONC', 'HIT_WALL', 'HIT_TREE', 'HIT_METAL',
-       'HIT_BRICK', 'HIT_WOOD', 'HIT_ELEC', 'HIT_TELEPH', 'HIT_HYDRANT', 'HIT_CURB']] = crash_df_ii[['HIT_FENCE', 'HIT_POLE',
+crash_df_ii[['HIT_FENCE', 'HIT_POLE', 'HIT_RAIL', 'HIT_SIGN', 'HIT_LIGHT',
+             'HIT_CONC', 'HIT_WALL', 'HIT_TREE', 'HIT_METAL', 'HIT_BRICK',
+             'HIT_WOOD', 'HIT_ELEC', 'HIT_TELEPH', 'HIT_HYDRANT', 'HIT_CURB']] = crash_df_ii[['HIT_FENCE', 'HIT_POLE',
        'HIT_RAIL', 'HIT_SIGN', 'HIT_LIGHT', 'HIT_CONC', 'HIT_WALL', 'HIT_TREE', 'HIT_METAL',
        'HIT_BRICK', 'HIT_WOOD', 'HIT_ELEC', 'HIT_TELEPH', 'HIT_HYDRANT', 'HIT_CURB']].fillna(value = 0)
 
 crash_df_ii = pd.merge(crash_df_ii, endo_dummies, on = 'Crash_ID', how = 'left')
 
-crash_df_ii[['Crash_ID', 'CDL2', 'CDL3', 'CDL4', 'CDL5', 'CDL6', 'CDL7', 'CDL8']] = crash_df_ii[['Crash_ID', 'CDL2', 'CDL3', 'CDL4', 'CDL5', 'CDL6', 'CDL7', 'CDL8']].fillna(value = 0)
+crash_df_ii[['Crash_ID', 'CDL2', 'CDL3', 'CDL4',
+             'CDL5', 'CDL6', 'CDL7', 'CDL8']] = crash_df_ii[['Crash_ID', 'CDL2', 'CDL3', 'CDL4',
+                                            'CDL5', 'CDL6', 'CDL7', 'CDL8']].fillna(value = 0)
 
 # Date Functions
 crash_df_ii['Crash_Date'] = pd.to_datetime(crash_df_ii['Crash_Date'], format = '%m/%d/%Y')
