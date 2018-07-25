@@ -1,7 +1,6 @@
 # Import Packages
 #########################################################################################################################
 import pandas as pd, numpy as np
-import pyodbc
 from sqlalchemy import create_engine, MetaData, Table, select
 import os, time
 import math
@@ -26,48 +25,62 @@ from nltk.corpus import stopwords
 from collections import Counter
 from nltk.stem import *
 
-# Folder Directories
+# Save Path & Input Folder Directories
 #########################################################################################################################
-dirs = ['C:/Users/user/Desktop/crash_iii/extract_20141107-20141231Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20140908-20141106Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20140701-20140907Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20140515-20140630Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20140311-20140514Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20140101-20140310Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20131116-20131231Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20130912-20131115Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20130701-20130911Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20130522-20130630Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20130315-20130521Texas',
-        'C:/Users/user/Desktop/crash_iii/extract_20130101-20130314Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20170601-20170801Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20170802-20170930Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20171001-20171124Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20171125-20180123Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20180124-20180323Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20180324-20180519Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20180520-20180531Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20170101-20170302Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20170303-20170427Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20170428-20170531Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20160926-20161119Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20161120-20161231Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20160731-20160925Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20160601-20160730Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20160426-20160531Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20160301-20160425Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20160101-20160229Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20151225-20151231Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20151030-20151224Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20150902-20151029Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20150701-20150901Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20150505-20150630Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20150305-20150504Texas',
-        'C:/Users/user/Desktop/crash_ii/extract_20150101-20150304Texas']
+save_path = '<save_path>'
+import_path = '<import_path>'
+dirs = ['extract_20141107-20141231Texas',
+        'extract_20140908-20141106Texas',
+        'extract_20140701-20140907Texas',
+        'extract_20140515-20140630Texas',
+        'extract_20140311-20140514Texas',
+        'extract_20140101-20140310Texas',
+        'extract_20131116-20131231Texas',
+        'extract_20130912-20131115Texas',
+        'extract_20130701-20130911Texas',
+        'extract_20130522-20130630Texas',
+        'extract_20130315-20130521Texas',
+        'extract_20130101-20130314Texas',
+        'extract_20170601-20170801Texas',
+        'extract_20170802-20170930Texas',
+        'extract_20171001-20171124Texas',
+        'extract_20171125-20180123Texas',
+        'extract_20180124-20180323Texas',
+        'extract_20180324-20180519Texas',
+        'extract_20180520-20180531Texas',
+        'extract_20170101-20170302Texas',
+        'extract_20170303-20170427Texas',
+        'extract_20170428-20170531Texas',
+        'extract_20160926-20161119Texas',
+        'extract_20161120-20161231Texas',
+        'extract_20160731-20160925Texas',
+        'extract_20160601-20160730Texas',
+        'extract_20160426-20160531Texas',
+        'extract_20160301-20160425Texas',
+        'extract_20160101-20160229Texas',
+        'extract_20151225-20151231Texas',
+        'extract_20151030-20151224Texas',
+        'extract_20150902-20151029Texas',
+        'extract_20150701-20150901Texas',
+        'extract_20150505-20150630Texas',
+        'Cextract_20150305-20150504Texas',
+        'extract_20150101-20150304Texas',
+        'extract_20121125-20121231Texas',
+        'extract_20120915-20121124Texas',
+        'extract_20120701-20120914Texas',
+        'extract_20120528-20120630Texas',
+        'extract_20120317-20120527Texas',
+        'extract_20120101-20120316Texas',
+        'extract_20111206-20111231Texas',
+        'extract_20110923-20111205Texas',
+        'extract_20110701-20110922Texas',
+        'extract_20110610-20110630Texas',
+        'extract_20110325-20110609Texas',
+        'extract_20110101-20110324Texas']
 
 # Important and Concatenate Text Files
 #########################################################################################################################
-def read_crash_csvs(dir_list):
+def read_crash_csvs(dir_list, folder_path):
     charges_list = []
     crash_list = []
     damages_list = []
@@ -78,26 +91,26 @@ def read_crash_csvs(dir_list):
     restrictions_list = []
     unit_list = []
     for direc in dir_list:
-        direc_files = os.listdir(direc)
+        direc_files = os.listdir(folder_path + direc)
         for file in direc_files:
             if file.split('_')[4] == 'charges':
-                charges_list.append(pd.read_csv(direc + '/' + file))
+                charges_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'crash':
-                crash_list.append(pd.read_csv(direc + '/' + file))
+                crash_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'damages':
-                damages_list.append(pd.read_csv(direc + '/' + file))
+                damages_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'endorsements':
-                endorsements_list.append(pd.read_csv(direc + '/' + file))
+                endorsements_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'lookup':
-                lookup_list.append(pd.read_csv(direc + '/' + file))
+                lookup_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'person':
-                person_list.append(pd.read_csv(direc + '/' + file))
+                person_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'primaryperson':
-                primaryperson_list.append(pd.read_csv(direc + '/' + file))
+                primaryperson_list.append(pd.read_csv(folder_path + direc + '/' + file))
             elif file.split('_')[4] == 'restrictions':
-                restrictions_list.append(pd.read_csv(direc + '/' + file))
+                restrictions_list.append(pd.read_csv(folder_path + direc + '/' + file))
             else:
-                unit_list.append(pd.read_csv(direc + '/' + file))
+                unit_list.append(pd.read_csv(folder_path + direc + '/' + file))
     charges_df = pd.concat(charges_list)
     crash_df = pd.concat(crash_list)
     damages_df = pd.concat(damages_list)
@@ -117,7 +130,7 @@ def read_crash_csvs(dir_list):
     restrictions_df,\
     unit_df
     
-charges_df, crash_df, damages_df, endorsements_df, lookup_df, person_df, primaryperson_df, restrictions_df, unit_df = read_crash_csvs(dirs)
+charges_df, crash_df, damages_df, endorsements_df, lookup_df, person_df, primaryperson_df, restrictions_df, unit_df = read_crash_csvs(dirs, import_path)
 
 # Define Data Manipulation & Exploration Functions
 #########################################################################################################################    
@@ -151,15 +164,6 @@ def pandas_col_summary(dat):
                            'First_Five_Vals': first_five_list})
     return output
 
-#charges_summary = pandas_col_summary(charges_df)
-#crashes_summary = pandas_col_summary(crash_df)
-#damages_summary = pandas_col_summary(damages_df)
-#lookup_summary = pandas_col_summary(lookup_df)
-#person_summary = pandas_col_summary(person_df)
-#primaryperson_summary = pandas_col_summary(primaryperson_df)
-#restrictions_summary = pandas_col_summary(restrictions_df)
-#unit_summary = pandas_col_summary(unit_df)
-
 def nan_del_cols(dat_summary, label_excl = ['Crash_ID'], nan_threshold = .5, uniq_perc_thres = 0.5):
     delete_list = []
     reason_list = []
@@ -175,8 +179,7 @@ def nan_del_cols(dat_summary, label_excl = ['Crash_ID'], nan_threshold = .5, uni
                 reason_list.append('uninformative string values')
             else:
                 pass
-    output_df = pd.DataFrame({'Variable': delete_list,
-                              'Deletion_Reason': reason_list})
+    output_df = pd.DataFrame({'Variable': delete_list, 'Deletion_Reason': reason_list})
     return output_df
 
 def remove_del_cols(dat, del_col_dat):
@@ -260,7 +263,6 @@ def crash_df_transform(dat, lab_vars, categ_vars, tm_vars, dv = 'Crash_Fatal_Fl'
 
 # Manual Feature Transformation of Individual Fields
 #########################################################################################################################    
-# Replace Prsn_Type_ID Variable - Combine 'Unknown' / 'Invalid' / etc.
 def prsn_type_id_repl(prsn_type_id_col):
     temp_list = []
     for prsn in prsn_type_id_col:
@@ -270,8 +272,7 @@ def prsn_type_id_repl(prsn_type_id_col):
             temp_list.append(prsn)
     output_df = pd.DataFrame({'Prsn_Type_ID': temp_list})
     return output_df
-    
-# Replace Prsn_Occpnt_Pos_ID Variable - Combine 'Unknown' / 'Invalid' / etc.
+
 def prsn_occpnt_pos_id_repl(prsn_occ_pos_col):
     temp_list = []
     for prsn in prsn_occ_pos_col:
@@ -282,7 +283,6 @@ def prsn_occpnt_pos_id_repl(prsn_occ_pos_col):
     output_df = pd.DataFrame({'Prsn_Occpnt_Pos_ID': temp_list})
     return output_df
 
-# Replace DFO ('distance of crash from highway') with itself + a missingness [0,1] variable
 def dfo_repl(dfo_col):
     num_list = []
     nan_dummy_list = []
@@ -296,8 +296,7 @@ def dfo_repl(dfo_col):
     output_df = pd.DataFrame({'Dfo': num_list,
                               'Dfo_Miss': nan_dummy_list})
     return output_df
-  
-# Replace Trk_Aadt_Pct ('adj. avg. daily traff perc for trucks on highway') with itself + a missingness [0,1] variable
+
 def trk_aadt_perc_repl(trk_aadt_col):
     num_list = []
     nan_dummy_list = []
@@ -312,7 +311,6 @@ def trk_aadt_perc_repl(trk_aadt_col):
                               'Trk_Aadt_Pct_Miss': nan_dummy_list})
     return output_df
 
-# Adt_Adj_Curnt_Amt
 def adt_adj_curnt_amt_repl(aaca_col):
     aaca_list = []
     aaca_miss_list = []
@@ -326,8 +324,7 @@ def adt_adj_curnt_amt_repl(aaca_col):
     output_df = pd.DataFrame({'Adt_Adj_Curnt_Amt': aaca_list,
                               'Adt_Adj_Curnt_Amt_Miss': aaca_miss_list})
     return output_df
-            
-# Pct_Combo_Trk_Adt
+
 def pct_combo_trk_adt_repl(pcta_col):
     pcta_list = []
     pcta_miss_list = []
@@ -342,7 +339,6 @@ def pct_combo_trk_adt_repl(pcta_col):
                               'Pct_Combo_Trk_Adt_Miss': pcta_miss_list})
     return output_df
 
-# Pct_Single_Trk_Adt
 def pct_single_trk_adt_repl(psta_col):
     psta_list = []
     psta_miss_list = []
@@ -357,7 +353,6 @@ def pct_single_trk_adt_repl(psta_col):
                               'Pct_Single_Trk_Adt_Miss': psta_miss_list})
     return output_df     
 
-# Func_Sys_ID
 def func_sys_id_repl(fsi_col):
     temp_list = []
     for f in fsi_col:
@@ -368,7 +363,6 @@ def func_sys_id_repl(fsi_col):
     output_df = pd.DataFrame({'Func_Sys_ID': temp_list})
     return output_df
 
-# Rural_Urban_Type_ID
 def rural_urban_type_id_repl(ruti_col):
     temp_list = []
     for r in ruti_col:
@@ -379,7 +373,6 @@ def rural_urban_type_id_repl(ruti_col):
     output_df = pd.DataFrame({'Rural_Urban_Type_ID': temp_list})
     return output_df
 
-# Median_Width
 def median_width_repl(med_col):
     med_list = []
     med_miss_list = []
@@ -394,7 +387,6 @@ def median_width_repl(med_col):
                               'Median_Width_Miss': med_miss_list})
     return output_df
 
-# Shldr_Use_Right_ID
 def shldr_use_right_id_repl(suri_col):
     suri_list = []
     for s in suri_col:
@@ -405,7 +397,6 @@ def shldr_use_right_id_repl(suri_col):
     output_df = pd.DataFrame({'Shldr_Use_Right_ID': suri_list})
     return output_df
 
-# Shldr_Use_Left_ID
 def shldr_use_left_id_repl(suri_col):
     suri_list = []
     for s in suri_col:
@@ -416,7 +407,6 @@ def shldr_use_left_id_repl(suri_col):
     output_df = pd.DataFrame({'Shldr_Use_Left_ID': suri_list})
     return output_df
 
-# Shldr_Type_Right_ID / Shldr_Type_Left_ID
 def shldr_type_id_repl(shldr_col):
     temp_list = []
     for s in shldr_col:
@@ -428,7 +418,6 @@ def shldr_type_id_repl(shldr_col):
     output_df = pd.DataFrame({colnm: temp_list})
     return output_df
 
-# Row_Width_Usual
 def row_width_usual_repl(rwu_col):
     rwu_list = []
     rwu_miss_list = []
@@ -443,7 +432,6 @@ def row_width_usual_repl(rwu_col):
                               'Row_Width_Usual_Miss': rwu_miss_list})
     return output_df
 
-# Road_Type_ID
 def road_type_repl(rt_col):
     temp_list = []
     for r in rt_col:
@@ -454,7 +442,6 @@ def road_type_repl(rt_col):
     output_df = pd.DataFrame({'Road_Type_ID': temp_list})
     return output_df
 
-# Median_Type_ID
 def median_type_repl(med_col):
     temp_list = []
     for m in med_col:
@@ -465,7 +452,6 @@ def median_type_repl(med_col):
     output_df = pd.DataFrame({'Median_Type_ID': temp_list})
     return output_df
 
-# Surf_Cond_ID
 def surf_cond_repl(surf_col):
     temp_list = []
     for s in surf_col:
@@ -476,7 +462,6 @@ def surf_cond_repl(surf_col):
     output_df = pd.DataFrame({'Surf_Cond_ID': temp_list})
     return output_df
 
-# Surf_Type_ID
 def surf_type_repl(surf_col):
     temp_list = []
     for s in surf_col:
@@ -487,7 +472,6 @@ def surf_type_repl(surf_col):
     output_df = pd.DataFrame({'Surf_Type_ID': temp_list})
     return output_df
 
-# Nbr_Of_Lane
 def nbr_of_lane_repl(lane_col):
     nol_list = []
     nol_miss_list = []
@@ -502,7 +486,6 @@ def nbr_of_lane_repl(lane_col):
                               'Nbr_Of_Lane_Miss': nol_miss_list})
     return output_df
 
-# Shldr_Width_Left & Shldr_Width_Right
 def shldr_width_repl(shldr_col):
     s_list = []
     s_miss_list = []
@@ -519,7 +502,6 @@ def shldr_width_repl(shldr_col):
                               colnm_ii: s_miss_list})
     return output_df
 
-# Curb_Type_Left_ID & Curb_Type_Right_ID
 def curb_type_repl(curb_col):
     curb_list = []
     curb_miss_list = []
@@ -536,7 +518,6 @@ def curb_type_repl(curb_col):
                               colnm_ii: curb_miss_list})
     return output_df
 
-# Surf_Width
 def surf_width_repl(surf_col):
     surf_list = []
     surf_list_miss = []
@@ -896,25 +877,6 @@ crash_df_ii = pd.merge(crash_df_ii, endo_dummies, on = 'Crash_ID', how = 'left')
 
 crash_df_ii[['Crash_ID', 'CDL2', 'CDL3', 'CDL4', 'CDL5', 'CDL6', 'CDL7', 'CDL8']] = crash_df_ii[['Crash_ID', 'CDL2', 'CDL3', 'CDL4', 'CDL5', 'CDL6', 'CDL7', 'CDL8']].fillna(value = 0)
 
-# Look at Fatality % Over Dates
-date_fatal = crash_df_ii[['Crash_ID', 'Crash_Fatal_Fl', 'Crash_Date']]
-date_fatal['Crash_Date'] = pd.to_datetime(date_fatal['Crash_Date'], format = '%m/%d/%Y')
-date_fatal_agg = date_fatal.groupby(['Crash_Date', 'Crash_Fatal_Fl']).Crash_ID.nunique().reset_index()
-date_nonfatal = date_fatal_agg[(date_fatal_agg.Crash_Fatal_Fl) == 'N']
-date_nonfatal.columns = ['Crash_Date', 'Crash_Fatal_Fl', 'Num_NonFatal']
-date_fatal = date_fatal_agg[(date_fatal_agg.Crash_Fatal_Fl) == 'Y']
-date_fatal.columns = ['Crash_Date', 'Crash_Fatal_Fl', 'Num_Fatal']
-date_fatal_perc = pd.merge(date_nonfatal[['Crash_Date', 'Num_NonFatal']],
-                           date_fatal[['Crash_Date', 'Num_Fatal']],
-                           on = 'Crash_Date',
-                           how = 'left')
-
-date_fatal_perc['Num_Crashes'] = date_fatal_perc['Num_Fatal'] + date_fatal_perc['Num_NonFatal']
-date_fatal_perc['Perc_Fatal'] = date_fatal_perc['Num_Fatal'] / date_fatal_perc['Num_Crashes']
-fig, ax = plt.subplots()
-ax.plot(date_fatal_perc['Crash_Date'], date_fatal_perc['Perc_Fatal'])
-date_fatal_perc.to_csv('C:/Users/user/Desktop/date_fatal_perc.csv')
-
 # Date Functions
 crash_df_ii['Crash_Date'] = pd.to_datetime(crash_df_ii['Crash_Date'], format = '%m/%d/%Y')
 
@@ -1048,11 +1010,8 @@ age_df.columns = ['Age_Bucket_1', 'Age_Bucket_2', 'Age_Bucket_3', 'Age_Bucket_4'
                   'Age_Bucket_6', 'Age_Bucket_7', 'Age_Bucket_8', 'Age_Bucket_9', 'Age_Bucket_10',
                   'Age_Bucket_11', 'Age_Bucket_12', 'Age_Bucket_13', 'Age_Bucket_14']
 age_df['Crash_ID'] = crash_df_v['Crash_ID']
-#age_df['Prsn_Nbr'] = crash_df_v['Prsn_Nbr']
 age_df = age_df.groupby(['Crash_ID']).sum()
 crash_df_vi = crash_df_v.drop(['Prsn_Nbr', 'Prsn_Age'], axis = 1, inplace = False)
-#crash_df_vi_summ = pandas_col_summary(crash_df_vi)
-
 person_cols = ['Crash_ID', 'Prsn_Age_missing', 'Prsn_Airbag_ID_1.0', 'Prsn_Airbag_ID_2.0', 'Prsn_Airbag_ID_3.0',
                'Prsn_Airbag_ID_4.0', 'Prsn_Airbag_ID_7.0', 'Prsn_Airbag_ID_8.0', 'Prsn_Ethnicity_ID_1.0',
                'Prsn_Ethnicity_ID_2.0', 'Prsn_Ethnicity_ID_3.0', 'Prsn_Ethnicity_ID_4.0', 'Prsn_Ethnicity_ID_5.0',
@@ -1097,6 +1056,5 @@ final_data_scaled, final_data_unscaled = scale_cont_cols(crash_df_vii, 'Crash_ID
 
 # Create Final, Model-Ready Dataframes
 #########################################################################################################################
-final_data_scaled.to_csv("C:/Users/user/Desktop/school/dddm/trf_fatality_scaled_07142018.csv", index = False)
-final_data_unscaled.to_csv("C:/Users/user/Desktop/school/dddm/trf_fatality_unscaled_07142018.csv", index = False)
-
+final_data_scaled.to_csv(save_path + "trf_fatality_scaled_07142018_ii.csv", index = False)
+final_data_unscaled.to_csv(save_path + "trf_fatality_unscaled_07142018_ii.csv", index = False)
