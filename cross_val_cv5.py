@@ -205,7 +205,6 @@ def xgb_eval_cv5(X, Y, Trn_Pos, Tst_Pos, Val_Pos):
         params['objective'] = 'binary:logistic'
         params['booster'] = 'gbtree'
         params['eval_metric'] = 'logloss'
-        #params['eta'] = 0.025
         params['eta'] = 0.03
         params['max_depth'] = 6
         params['min_child_weight'] = 12
